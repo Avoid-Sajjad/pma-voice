@@ -207,9 +207,14 @@ end
 						checkFailed = true
 						break
 					end
-					if shouldPlayAnimation and HasAnimDictLoaded("anim@male@holding_radio") then
+if shouldPlayAnimation and HasAnimDictLoaded("anim@male@holding_radio") then
 	if not IsEntityPlayingAnim(PlayerPedId(), "anim@male@holding_radio", "holding_radio_clip", 3) then
 		TaskPlayAnim(PlayerPedId(), "anim@male@holding_radio", "holding_radio_clip", 8.0, 2.0, -1, 50, 0, false, false, false)
+
+		-- ✅ Attach prop if not already attached
+		if not radioProp then
+			AttachRadioProp()
+		end
 	end
 end
 
@@ -242,12 +247,18 @@ RegisterCommand('-radiotalk', function()
 		TriggerEvent("pma-voice:radioActive", false)
 		LocalPlayer.state:set("radioActive", false, true);
 		playMicClicks(false)
+
 		if GetConvarInt('voice_enableRadioAnim', 1) == 1 then
 			StopAnimTask(PlayerPedId(), "anim@male@holding_radio", "holding_radio_clip", -4.0)
 		end
+
+		-- ✅ Remove radio prop here
+		RemoveRadioProp()
+
 		TriggerServerEvent('pma-voice:setTalkingOnRadio', false)
 	end
 end, false)
+
 if gameVersion == 'fivem' then
 	RegisterKeyMapping('+radiotalk', 'Talk over Radio', 'keyboard', GetConvar('voice_defaultRadio', 'LMENU'))
 end
@@ -296,32 +307,18 @@ local radioProp = nil
 local isTalking = false
 
 function AttachRadioProp()
-    local playerPed = PlayerPedId()
-    local x, y, z = table.unpack(GetEntityCoords(playerPed))
+	local playerPed = PlayerPedId()
+	local x, y, z = table.unpack(GetEntityCoords(playerPed))
 
-    radioProp = CreateObject(GetHashKey("prop_cs_hand_radio"), x, y, z + 0.2, true, true, true)
-    AttachEntityToEntity(radioProp, playerPed, GetPedBoneIndex(playerPed, 57005), 0.13, 0.03, -0.02, -95.0, 160.0, 30.0, true, true, false, true, 1, true)
+	radioProp = CreateObject(GetHashKey("prop_cs_hand_radio"), x, y, z + 0.2, true, true, true)
+	AttachEntityToEntity(radioProp, playerPed, GetPedBoneIndex(playerPed, 57005), 0.13, 0.03, -0.02, -95.0, 160.0, 30.0, true, true, false, true, 1, true)
 end
 
 function RemoveRadioProp()
-    if radioProp then
-        DeleteEntity(radioProp)
-        radioProp = nil
-    end
+	if radioProp then
+		DeleteEntity(radioProp)
+		radioProp = nil
+	end
 end
 
--- Main Loop
-CreateThread(function()
-    while true do
-        Wait(200)
-        local talkingNow = NetworkIsPlayerTalking(PlayerId())
 
-        if talkingNow and not isTalking then
-            isTalking = true
-            AttachRadioProp()
-        elseif not talkingNow and isTalking then
-            isTalking = false
-            RemoveRadioProp()
-        end
-    end
-end)
