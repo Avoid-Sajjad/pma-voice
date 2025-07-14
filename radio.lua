@@ -196,6 +196,7 @@ RegisterCommand('+radiotalk', function()
 			playMicClicks(true)
 			if shouldPlayAnimation then
 	RequestAnimDict('ultra@walkie_talkie')
+	AttachRadioProp()
 end
 
 			CreateThread(function()
@@ -245,6 +246,7 @@ RegisterCommand('-radiotalk', function()
 		playMicClicks(false)
 		if GetConvarInt('voice_enableRadioAnim', 1) == 1 then
 			StopAnimTask(PlayerPedId(), "ultra@walkie_talkie", "walkie_talkie", -4.0)
+			RemoveRadioProp()
 		end
 		TriggerServerEvent('pma-voice:setTalkingOnRadio', false)
 	end
@@ -312,7 +314,7 @@ function RemoveRadioProp()
 end
 
 -- Main Loop
-CreateThread(function()
+--[[CreateThread(function()
     while true do
         Wait(200)
         local talkingNow = NetworkIsPlayerTalking(PlayerId())
@@ -325,4 +327,4 @@ CreateThread(function()
             RemoveRadioProp()
         end
     end
-end)
+end) --]]
